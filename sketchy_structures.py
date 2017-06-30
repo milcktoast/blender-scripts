@@ -1,14 +1,16 @@
+import bpy
+import bmesh
+from bpy.props import FloatProperty
+
 bl_info = {
     'name': 'Sketchy Structures',
     'category': 'Mesh',
 }
 
-import bpy
-import bmesh
-from bpy.props import FloatProperty
 
 class SketchyStructuresOperator(bpy.types.Operator):
     """Sketchy Structures"""
+
     bl_idname = 'mesh.sketchy_structures_operator'
     bl_label = 'Sketchy Structures'
     bl_options = {'REGISTER', 'UNDO'}
@@ -27,11 +29,12 @@ class SketchyStructuresOperator(bpy.types.Operator):
 
     def execute(self, context):
         res = create_edges(context,
-            min_distance=self.min_distance,
-            max_distance=self.max_distance)
+                           min_distance=self.min_distance,
+                           max_distance=self.max_distance)
 
         self.report({'INFO'}, 'Created %s edges' % len(res['edges']))
         return {'FINISHED'}
+
 
 def create_edges(context, min_distance, max_distance):
     edit_object = bpy.context.object
@@ -44,9 +47,9 @@ def create_edges(context, min_distance, max_distance):
             dist = (vertB.co - vertA.co).length
 
             if (vertA != vertB and
-                dist >= min_distance and
-                dist <= max_distance and not
-                edge_exists(edit_mesh, vertA, vertB)):
+                    dist >= min_distance and
+                    dist <= max_distance and not
+                    edge_exists(edit_mesh, vertA, vertB)):
 
                 edge = add_edge(edit_mesh, vertA, vertB)
                 created_edges.append(edge)
@@ -54,20 +57,26 @@ def create_edges(context, min_distance, max_distance):
     bmesh.update_edit_mesh(edit_object.data)
     return {'edges': created_edges}
 
+
 # TODO: Possible to optimize with a weak map or simpler lookup?
 def edge_exists(mesh, v0, v1):
-    existing_edges = [edge for edge in mesh.edges if v0 in edge.verts and v1 in edge.verts]
-    return len(existing_edges) > 0
+    edges = [edge for edge in mesh.edges
+             if v0 in edge.verts and v1 in edge.verts]
+    return len(edges) > 0
+
 
 def add_edge(mesh, v0, v1):
     return mesh.edges.new((v0, v1))
 
+
 def draw_menu(self, context):
     self.layout.operator(SketchyStructuresOperator.bl_idname)
+
 
 def register():
     bpy.utils.register_class(SketchyStructuresOperator)
     bpy.types.VIEW3D_MT_edit_mesh_edges.append(draw_menu)
+
 
 def unregister():
     bpy.utils.unregister_class(SketchyStructuresOperator)
