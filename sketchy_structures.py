@@ -1,3 +1,8 @@
+bl_info = {
+    'name': 'Sketchy Structures',
+    'category': 'Mesh',
+}
+
 import bpy, bmesh
 
 def create_edges(context):
@@ -24,17 +29,22 @@ def edge_exists(mesh, v0, v1):
 def add_edge(mesh, v0, v1):
     return mesh.edges.new((v0, v1))
 
-class StringStructureOperator(bpy.types.Operator):
+class SketchyStructuresOperator(bpy.types.Operator):
+    """Sketchy Structures"""
     bl_idname = 'object.string_structure_operator'
-    bl_label = 'String Structure'
+    bl_label = 'Sketchy Structures'
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         res = create_edges(context)
         self.report({'INFO'}, 'Created %s edges' % len(res['edges']))
         return {'FINISHED'}
 
-bpy.utils.register_class(StringStructureOperator)
-try:
-    bpy.ops.object.string_structure_operator()
-except Exception as err:
-    raise err
+def register():
+    bpy.utils.register_class(SketchyStructuresOperator)
+
+def unregister():
+    bpy.utils.unregister_class(SketchyStructuresOperator)
+
+if __name__ == "__main__":
+    register()
