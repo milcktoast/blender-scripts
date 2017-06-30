@@ -1,31 +1,36 @@
 import bpy, bmesh
 
-def main(context):
+def create_edges(context):
     edit_object = bpy.context.object
     edit_mesh = bmesh.from_edit_mesh(edit_object.data)
-    selected_verts = [v for v in edit_mesh.verts if v.select]
+    selected_verts = [vert for vert in edit_mesh.verts if vert.select]
+    created_edges = []
 
     for i, vertA in enumerate(selected_verts):
         for vertB in selected_verts[i + 1:]:
             dist = (vertB.co - vertA.co).length
-            if dist > 0.0:
-                add_edge(edit_mesh, vertA, vertB)
+            if dist > 0.0 and not edge_exists(edit_mesh, vertA, vertB):
+                edge = add_edge(edit_mesh, vertA, vertB)
+                created_edges.append(edge)
 
     bmesh.update_edit_mesh(edit_object.data)
+    return {'edges': created_edges}
 
-# FIXME: Check if edge exists first
+# TODO: Possible to optimize with a weak map or simpler lookup?
+def edge_exists(mesh, v0, v1):
+    existing_edges = [edge for edge in mesh.edges if v0 in edge.verts and v1 in edge.verts]
+    return len(existing_edges) > 0
+
 def add_edge(mesh, v0, v1):
-    try:
-        mesh.edges.new((v0, v1))
-    except Exception as err:
-        print(err, v0, v1)
+    return mesh.edges.new((v0, v1))
 
 class StringStructureOperator(bpy.types.Operator):
     bl_idname = 'object.string_structure_operator'
     bl_label = 'String Structure'
 
     def execute(self, context):
-        main(context)
+        res = create_edges(context)
+        self.report({'INFO'}, 'Created %s edges' % len(res['edges']))
         return {'FINISHED'}
 
 bpy.utils.register_class(StringStructureOperator)
