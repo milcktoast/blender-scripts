@@ -31,7 +31,7 @@ def add_edge(mesh, v0, v1):
 
 class SketchyStructuresOperator(bpy.types.Operator):
     """Sketchy Structures"""
-    bl_idname = 'object.string_structure_operator'
+    bl_idname = 'mesh.sketchy_structures_operator'
     bl_label = 'Sketchy Structures'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -40,11 +40,16 @@ class SketchyStructuresOperator(bpy.types.Operator):
         self.report({'INFO'}, 'Created %s edges' % len(res['edges']))
         return {'FINISHED'}
 
+def draw_menu(self, context):
+    self.layout.operator(SketchyStructuresOperator.bl_idname)
+
 def register():
     bpy.utils.register_class(SketchyStructuresOperator)
+    bpy.types.VIEW3D_MT_edit_mesh_edges.append(draw_menu)
 
 def unregister():
     bpy.utils.unregister_class(SketchyStructuresOperator)
+    bpy.types.VIEW3D_MT_edit_mesh_edges.remove(draw_menu)
 
 if __name__ == "__main__":
     register()
